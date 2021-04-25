@@ -1,19 +1,21 @@
 import requests
 import re
-import logging
-
+import os
+from loguru import logger
 
 """第二书包网单本书爬虫"""
 
 url_prefix = 'https://m.diershubao.com'
-
+# 设置一个变量，该变量为指定保存的路径,windows系统下的D盘，test目录
+target_folder = 'C:\\Users\\msi-pc\\Documents\\novel\\'
+# 判断D盘下是否存在test目录，如果不存在该目录，则创建test目录
 class NovelSpider:
     """spider nover"""
     def __init__(self):
         # download tools
         self.session = requests.Session()
-        # 日志初始化设置
-        logging.basicConfig(level=logging.INFO)
+        if not os.path.exists(target_folder):
+            os.mkdir(target_folder)
 
 
     """外界调用此函数传入所需下载书籍的url即可下载"""
@@ -26,7 +28,7 @@ class NovelSpider:
             nextPageUrl = re.findall(r'<span class="right"><a href="(.*?)" class="onclick">下一页</a></span>', content_index_html)
             if(len(nextPageUrl) > 0):
                 pageUrl = url_prefix + nextPageUrl[0]
-                print('下页目录索引:', pageUrl)
+                logger.info('下页目录索引:', pageUrl)
 
     # 下载小说内容，并保存
     def get_novel_content(self, index_html):
@@ -34,14 +36,14 @@ class NovelSpider:
         novel_chapter_infos = self.get_novel_chapter_infos(index_html)
         # 获取小说名称
         novel_name = self.get_novel_name(index_html)
-        fb = open('%s.txt' %novel_name, 'a')
+        fb = open(target_folder + '%s.txt' %novel_name, mode = 'a')
         """循环下载章节"""
         for chapter_info in novel_chapter_infos:
             # 下载各章内容
             chapter_url = url_prefix + chapter_info[0]
             chapter_content = self.download_whole_chapter(chapter_url)
             chapter_title = chapter_info[1]
-            print(chapter_title)
+            logger.info(chapter_title)
             fb.write('%s\n' %chapter_title)
             fb.write('%s\n'%chapter_content)
         fb.close()
@@ -93,11 +95,6 @@ class NovelSpider:
 
 """实例化类对象"""
 if __name__ == '__main__':
-    novel_url = 'https://m.diershubao.com/3_3395/'
+    novel_url = 'https://m.diershubao.com/2_2001/'
     spider = NovelSpider() # 实例化对象
     spider.get_novel(novel_url)
-
-
-
-
-
