@@ -41,15 +41,13 @@ class NovelSpider:
         for chapter_info in novel_chapter_infos:
             # 下载各章内容
             chapter_url = url_prefix + chapter_info[0]
-            chapter_content = self.download_whole_chapter(chapter_url)
             chapter_title = chapter_info[1]
             logger.info(chapter_title)
             fb.write('%s\n' %chapter_title)
-            fb.write('%s\n'%chapter_content)
+            self.download_whole_chapter(chapter_url, fb)
         fb.close()
 
-    def download_whole_chapter(self, pageUrl):
-        chapter_content = ''
+    def download_whole_chapter(self, pageUrl, fb):
         while(pageUrl != ''):
             # 下载本章各页内容内容
             chapterHtmlText = self.download_html(pageUrl, encoding = 'gbk')
@@ -59,8 +57,9 @@ class NovelSpider:
             if(len(nextUrl) > 0):
                 pageUrl = url_prefix + nextUrl[0]
             # 数据清洗
-            chapter_content += '\n' + self.clean_chapter_content(chapterHtmlText)
-        return chapter_content
+            chapter_content = '\n' + self.clean_chapter_content(chapterHtmlText)
+            # 及时写入每页数据
+            fb.write('%s\n'%chapter_content)
 
     # 清洗各章内容
     def clean_chapter_content(self, chapter_content):
@@ -95,6 +94,6 @@ class NovelSpider:
 
 """实例化类对象"""
 if __name__ == '__main__':
-    novel_url = 'https://m.diershubao.com/2_2001/'
+    novel_url = 'https://m.diershubao.com/0_1/'
     spider = NovelSpider() # 实例化对象
     spider.get_novel(novel_url)
